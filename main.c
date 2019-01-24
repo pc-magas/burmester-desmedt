@@ -10,6 +10,10 @@ int main(int argc, char *argv[]) {
   MPI_Init( &argc, &argv );
   MPI_Comm_rank( MPI_COMM_WORLD, &rank );
   MPI_Comm_size( MPI_COMM_WORLD, &size );
+
+  // @todo set the appropriate size
+  int participants[size];
+
   /* Load the human readable error strings for libcrypto */
   ERR_load_crypto_strings();
 
@@ -19,8 +23,8 @@ int main(int argc, char *argv[]) {
   OPENSSL_config(NULL);
 
   /* ... Do some crypto stuff here ... */
-
   printf( "Cluster size: %d\nTerminal ID: %d\n",size,rank );
+
   /* Removes all digests and ciphers */
   EVP_cleanup();
   CRYPTO_cleanup_all_ex_data();
