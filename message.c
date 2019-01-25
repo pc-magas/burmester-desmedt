@@ -1,4 +1,6 @@
 #include "message.h"
+#include "mpi.h"
+#include <stdio.h>
 
 /**
  * Broadcasts a bignum
@@ -10,13 +12,17 @@ int MPIbcastBigNum(BIGNUM *num, int rank, char* purpoce){
     int size = BN_num_bytes(num);
     unsigned char *message = OPENSSL_malloc(size);
 
-    if(BN_bn2bin(num, message)) {
+    if(!BN_bn2bin(num, message)) {
+     fprintf(stderr, "RANK %d: Fail to allocate an array for key bytes \"%s\" \n", rank, purpoce);
+     fflush(stderr);
      OPENSSL_free(message);
      return -1;    
     }
 
     //Do the actual Broadcast && Debug
-    int value = MPI_Bcast((void *)message,size,MPI_BYTE,rank,MPI_COMM_WORLD);
+    printf("RANK %d: Broaccasting bignum for purpoce \"%s\" \n", rank, purpoce);
+    fflush(stdout);
+    int value = MPI_Bcast(message, size, MPI_BYTE, rank, MPI_COMM_WORLD);
     switch(value) {
         case MPI_ERR_COMM:
          fprintf(stderr, "RANK %d: COMMUNICATIPN ERROR on BIGNUM sending for purpoce \"%s\" \n", rank, purpoce);
@@ -44,7 +50,7 @@ int MPIbcastBigNum(BIGNUM *num, int rank, char* purpoce){
 
         default:
           printf("RANK %d: ALL OK on BIGNUM sending on purpoce \"%s\" \n", rank, purpoce);
-          fflush(stdin);
+          fflush(stdout);
     }
     
     //Cleanups

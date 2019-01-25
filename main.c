@@ -21,7 +21,6 @@ void cleanup(DH *secret) {
 
 int main(int argc, char *argv[]) {
   int rank, size;
-  DH *secret=NULL;
 
 
   MPI_Init( &argc, &argv );
@@ -34,6 +33,8 @@ int main(int argc, char *argv[]) {
   OpenSSL_add_all_algorithms();
   /* Load config file, and other important initialisation */
   OPENSSL_config(NULL);
+  
+  DH *secret;
 
   printf("RANK %d, Generating Diffie Hellman Keys\n", rank);
   fflush(stdout);
@@ -50,9 +51,20 @@ int main(int argc, char *argv[]) {
   // Set up Barrier for cpommunications
   MPI_Barrier(MPI_COMM_WORLD);
 
-  printf("RANK %d, Publishing Keys\n",rank);
+  printf("RANK %d, Publishing Keys\n", rank);
   fflush(stdout);
-  MPIbcastBigNum(secret->pub_key, rank, "Publishing Public Key");
+
+  if(secret == NULL) {
+    cleanup(secret);
+    fprintf(stderr, "RANK %d, Error on Generating the Diffie Hellman\n",rank);
+    fflush(stderr);
+    return -1;
+  }
+
+  if(MPIbcastBigNum(secret->pub_key, rank, "Publishing Public Key") == -1){
+   cleanup(secret);
+   return -1;
+  }
   
   /*Cleanup */
   cleanup(secret);
