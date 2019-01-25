@@ -5,6 +5,9 @@
 
  /**
   * Generate Diffie-Hellman Key Agreement keys.
+  * 
+  * NOTE: Create the DH struct to the MAIN function and then pass it towards this one.
+  * 
   * @param [in] encryptionInfo The created Kerys Structure
   * @return 0 on sucess -1 on failure
   */
