@@ -27,9 +27,7 @@ int main(int argc, char *argv[]) {
   MPI_Init( &argc, &argv );
   MPI_Comm_rank( MPI_COMM_WORLD, &rank );
   MPI_Comm_size( MPI_COMM_WORLD, &size );
-  
-  int participants[size];
-  
+    
   /* Load the human readable error strings for libcrypto */
   ERR_load_crypto_strings();
   /* Load all digest and cipher algorithms */
@@ -44,10 +42,14 @@ int main(int argc, char *argv[]) {
     fprintf(stderr, "RANK %d, Failed to intialize key\n",rank);
     fflush(stderr);
     return -1;
-  } else {
-    printf("RANK %d, Keys generated\n",rank);
-    fflush(stdout);
   }
+
+  // Set up Barrier for cpommunications
+  MPI_Barrier(MPI_COMM_WORLD);
+  
+  
+  printf("RANK %d, Keys generated\n",rank);
+  fflush(stdout);
   
   /*Cleanup */
   cleanup(secret);
