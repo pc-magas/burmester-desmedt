@@ -5,7 +5,7 @@
 
  /**
   * Generate Diffie-Hellman Key Agreement keys.
-  * @param [out] encryptionInfo The created Kerys Structure
+  * @param [in] encryptionInfo The created Kerys Structure
   * @return 0 on sucess -1 on failure
   */
  int generateKeys(DH *encryptionInfo);
