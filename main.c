@@ -49,8 +49,10 @@ int main(int argc, char *argv[]) {
 
   // Set up Barrier for cpommunications
   MPI_Barrier(MPI_COMM_WORLD);
-  BIGNUM *public=secret->pub_key;
-  MPIbcastBigNum(*public, rank, "Publishing Public Key");
+
+  printf("RANK %d, Publishing Keys\n",rank);
+  fflush(stdout);
+  MPIbcastBigNum(secret->pub_key, rank, "Publishing Public Key");
   
   /*Cleanup */
   cleanup(secret);

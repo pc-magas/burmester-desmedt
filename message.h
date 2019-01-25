@@ -7,13 +7,13 @@
  * @param [in] rank The id of the member
  * @return -1 on error 0 on sucess
  */
-int MPIbcastBigNum(BIGNUM num, int rank, char* purpoce);
+int MPIbcastBigNum(BIGNUM *num, int rank, char* purpoce);
 
 /**
  * Allocate a BigNumber array.
  * @param [in] size The number of elements for the array
  */
-// BIGNUM[] allocateBigNumArray(int size);
+BIGNUM** allocateBigNumArray(int size);
 
 
 /**
@@ -22,4 +22,4 @@ int MPIbcastBigNum(BIGNUM num, int rank, char* purpoce);
  * @param [in] size The big number list
  * @return -1 on error 0 on sucess
  */
-// int MPIReceiveBigNum(BIGNUM **numbers, int size);
+int MPIReceiveBigNum(BIGNUM **numbers, int size);

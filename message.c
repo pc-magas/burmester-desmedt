@@ -6,17 +6,18 @@
  * @param [in] rank The id of the member
  * @return -1 on error 0 on sucess
  */
-int MPIbcastBigNum(BIGNUM num, int rank, char* purpoce){
-    int size = BN_num_bytes(&num);
+int MPIbcastBigNum(BIGNUM *num, int rank, char* purpoce){
+    int size = BN_num_bytes(num);
     unsigned char *message = OPENSSL_malloc(size);
 
-    if(BN_bn2bin(&num, message)) {
+    if(BN_bn2bin(num, message)) {
      OPENSSL_free(message);
      return -1;    
     }
 
     //Do the actual Broadcast && Debug
-    switch(MPI_Bcast((void *)message,size,MPI_BYTE,rank,MPI_COMM_WORLD)) {
+    int value = MPI_Bcast((void *)message,size,MPI_BYTE,rank,MPI_COMM_WORLD);
+    switch(value) {
         case MPI_ERR_COMM:
          fprintf(stderr, "RANK %d: COMMUNICATIPN ERROR on BIGNUM sending for purpoce \"%s\" \n", rank, purpoce);
          fflush(stderr);
@@ -56,19 +57,19 @@ int MPIbcastBigNum(BIGNUM num, int rank, char* purpoce){
  * @param [in] size The number of elements for the array
  * @return An array to Store the BigNum
  */
-// BIGNUM** allocateBigNumArray(int size){
-//     if(size<=0) return NULL;
+BIGNUM** allocateBigNumArray(int size){
+    if(size<=0) return NULL;
 
-//     BIGNUM **array = OPENSSL_malloc(size*sizeof(BIGNUM*));
+    BIGNUM **array = OPENSSL_malloc(size*sizeof(BIGNUM*));
 
-//     if(!array) return NULL;
+    if(!array) return NULL;
 
-//     for(int i=0;i<size;i++){
-//         array[i]=BN_new();
-//     }
+    for(int i=0;i<size;i++){
+        array[i]=BN_new();
+    }
 
-//     return array;
-// }
+    return array;
+}
 
 /**
  * Receive generated Big Number from all participants
@@ -76,8 +77,14 @@ int MPIbcastBigNum(BIGNUM num, int rank, char* purpoce){
  * @param [in] size The big number list
  * 
  */
-// int MPIReceiveBigNum(BIGNUM **numbers, int size) {
-//     numbers=allocateBigNumArray(size);
-//     if(numbers == NULL) return -1;
+int MPIReceiveBigNum(BIGNUM **numbers, int size) {
+    numbers=allocateBigNumArray(size);
+    if(numbers == NULL) return -1;
+    int remaining = size;
+    // do {
+    //   char *data
+    //   MPI_Recv(data,)
+    // } while(remaining>0);
 
-// }
+ return 0;
+}
