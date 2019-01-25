@@ -34,7 +34,14 @@ int main(int argc, char *argv[]) {
   /* Load config file, and other important initialisation */
   OPENSSL_config(NULL);
   
-  DH *secret;
+  DH *secret= DH_new();
+
+ if(NULL == (secret = DH_new())){
+    fprintf(stderr, "RANK %d, Could Not Initialize the Diffie Hellman\n",rank);
+    fflush(stderr); 
+    return -1;
+ }
+
 
   printf("RANK %d, Generating Diffie Hellman Keys\n", rank);
   fflush(stdout);
