@@ -44,12 +44,13 @@ int main(int argc, char *argv[]) {
     return -1;
   }
 
-  // Set up Barrier for cpommunications
-  MPI_Barrier(MPI_COMM_WORLD);
-  
-  
   printf("RANK %d, Keys generated\n",rank);
   fflush(stdout);
+
+  // Set up Barrier for cpommunications
+  MPI_Barrier(MPI_COMM_WORLD);
+  BIGNUM *public=secret->pub_key;
+  MPIbcastBigNum(*public, rank, "Publishing Public Key");
   
   /*Cleanup */
   cleanup(secret);

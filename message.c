@@ -6,11 +6,11 @@
  * @param [in] rank The id of the member
  * @return -1 on error 0 on sucess
  */
-int MPIbcastBigNum(BIGNUM num, int rank, char* puproce){
+int MPIbcastBigNum(BIGNUM num, int rank, char* purpoce){
     int size = BN_num_bytes(&num);
     unsigned char *message = OPENSSL_malloc(size);
 
-    if(BN_bn2bin(&num, message) {
+    if(BN_bn2bin(&num, message)) {
      OPENSSL_free(message);
      return -1;    
     }

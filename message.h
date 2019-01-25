@@ -7,7 +7,7 @@
  * @param [in] rank The id of the member
  * @return -1 on error 0 on sucess
  */
-int MPIbcastBigNum(BIGNUM num, int rank);
+int MPIbcastBigNum(BIGNUM num, int rank, char* purpoce);
 
 /**
  * Allocate a BigNumber array.
