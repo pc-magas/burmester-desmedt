@@ -2,6 +2,11 @@
 #include "mpi.h"
 
 /**
+ * A common way to handle the 
+ */
+int handleMPIBCast(int rank, char *purpoce, int errCode);
+
+/**
  * Broadcasts a bignum
  * @param [in] num The number to broadcast
  * @param [in] rank The id of the member
@@ -23,3 +28,4 @@ BIGNUM** allocateBigNumArray(int size);
  * @return -1 on error 0 on sucess
  */
 int MPIReceiveBigNum(BIGNUM **numbers, int size);
+

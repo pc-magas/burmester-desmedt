@@ -2,6 +2,35 @@
 #include "mpi.h"
 #include <stdio.h>
 
+int handleMPIBCast(int rank, char *purpoce, int errCode){
+     switch(errCode) {
+        case MPI_ERR_COMM:
+         fprintf(stderr, "RANK %d: COMMUNICATIPN ERROR on BIGNUM sending for purpoce \"%s\" \n", rank, purpoce);
+         fflush(stderr);
+         return -1;
+
+        case MPI_ERR_COUNT:
+         fprintf(stderr, "RANK %d: Invalid Size Count on BIGNUM sending for purpoce \"%s\" \n", rank, purpoce);
+         fflush(stderr);
+         return -1;
+        
+        case MPI_ERR_TYPE:
+         fprintf(stderr, "RANK %d: Invalid Data Type on BIGNUM sending for purpoce \"%s\" \n", rank, purpoce);
+         fflush(stderr);
+         return -1;
+
+        case MPI_ERR_BUFFER:
+         fprintf(stderr, "RANK %d: Invalid Buffer on BIGNUM sending for purpoce \"%s\" \n", rank, purpoce);
+         fflush(stderr);
+         return -1;
+
+        default:
+          printf("RANK %d: ALL OK on BIGNUM sending on purpoce \"%s\" \n", rank, purpoce);
+          fflush(stdout);
+          return 0;
+    }
+}
+
 /**
  * Broadcasts a bignum
  * @param [in] num The number to broadcast
@@ -23,39 +52,8 @@ int MPIbcastBigNum(BIGNUM *num, int rank, char* purpoce){
     printf("RANK %d: Broaccasting bignum for purpoce \"%s\" \n", rank, purpoce);
     fflush(stdout);
     int value = MPI_Bcast(message, size, MPI_BYTE, rank, MPI_COMM_WORLD);
-    switch(value) {
-        case MPI_ERR_COMM:
-         fprintf(stderr, "RANK %d: COMMUNICATIPN ERROR on BIGNUM sending for purpoce \"%s\" \n", rank, purpoce);
-         fflush(stderr);
-         OPENSSL_free(message);
-         return -1;
-
-        case MPI_ERR_COUNT:
-         fprintf(stderr, "RANK %d: Invalid Size Count on BIGNUM sending for purpoce \"%s\" \n", rank, purpoce);
-         fflush(stderr);
-         OPENSSL_free(message);
-         return -1;
-        
-        case MPI_ERR_TYPE:
-         fprintf(stderr, "RANK %d: Invalid Data Type on BIGNUM sending for purpoce \"%s\" \n", rank, purpoce);
-         fflush(stderr);
-         OPENSSL_free(message);
-         return -1;
-
-        case MPI_ERR_BUFFER:
-         fprintf(stderr, "RANK %d: Invalid Buffer on BIGNUM sending for purpoce \"%s\" \n", rank, purpoce);
-         fflush(stderr);
-         OPENSSL_free(message);
-         return -1;
-
-        default:
-          printf("RANK %d: ALL OK on BIGNUM sending on purpoce \"%s\" \n", rank, purpoce);
-          fflush(stdout);
-    }
-    
-    //Cleanups
     OPENSSL_free(message);
-    return 0;
+    return handleMPIBCast(rank, purpoce, value);
 }
 
 /**
@@ -86,11 +84,7 @@ BIGNUM** allocateBigNumArray(int size){
 int MPIReceiveBigNum(BIGNUM **numbers, int size) {
     numbers=allocateBigNumArray(size);
     if(numbers == NULL) return -1;
-    int remaining = size;
-    // do {
-    //   char *data
-    //   MPI_Recv(data,)
-    // } while(remaining>0);
+    
 
  return 0;
 }
