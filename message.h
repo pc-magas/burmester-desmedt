@@ -32,8 +32,17 @@ BIGNUM** allocateBigNumArray(int size);
 BIGNUM** MPIReceiveBigNum(int *error, int rank, int size);
 
 /**
- * Safely frees a value
+ * Safely frees a value'
+ * @param [in/out] value The value to free afteer freeing we enforce its value as null
  */
-void safeFree(unsigned char *value,int rank);
+void safeFree(unsigned char *value);
+
+/**
+ * We set zero to an unsinged char array before changing it size
+ * @param [in/out] value The value to change the size
+ * @param [in] oldsize The former size of the array
+ * @param [in] newsize The new size of the array
+ */
+unsigned char* safeRealloc(unsigned char *value, int oldsize, int newsize);
 
 #endif

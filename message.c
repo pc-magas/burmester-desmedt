@@ -6,11 +6,30 @@
 
 #include <stdio.h>
 
-void safeFree(unsigned char *value, int rank){
+/**
+ * Safely frees a value'
+ * @param [in/out] value The value to free afteer freeing we enforce its value as null
+ */
+void safeFree(unsigned char *value) {
     if(value==NULL) return;
-    printf("RANK %d: Freeing value\n",rank);
     OPENSSL_free(value);
     value=NULL;
+}
+
+/**
+ * We set zero to an unsinged char array before changing it size
+ * @param [in/out] value The value to change the size
+ * @param [in] oldsize The former size of the array
+ * @param [in] newsize The new size of the array
+ */
+unsigned char* safeRealloc(unsigned char *value, int oldsize, int newsize){
+  if(oldsize < 0 || newsize <= 0) {
+    safeFree(value);
+    return NULL;
+  }
+
+  if(oldsize > 0 ) OPENSSL_cleanse(value,oldsize);
+  return OPENSSL_realloc((void *)value,newsize);
 }
 
 int handleMPIBCast(int rank, char *purpoce, int errCode){
@@ -125,13 +144,13 @@ BIGNUM** allocateBigNumArray(int size){
       }
 
       printf("RANK:%d Receiving Bcast Message for a PUBLIC KEY sized %d from %d\n",rank, receivedBytes, i); 
-      tmp=(unsigned char *)OPENSSL_realloc((void *)tmp,receivedBytes);
+      tmp=safeRealloc(tmp,old_size,receivedBytes);
       MPI_Barrier(MPI_COMM_WORLD);
       bcastError = MPI_Bcast(tmp, receivedBytes, MPI_BYTE, i, MPI_COMM_WORLD);
       MPI_Barrier(MPI_COMM_WORLD);
       
       if(-1 == handleMPIBCast(rank,"Receiving the Key",bcastError)){ //Error Handling
-        safeFree(tmp,rank);
+        safeFree(tmp);
         *error=-1;
         return NULL;
       }
@@ -139,7 +158,7 @@ BIGNUM** allocateBigNumArray(int size){
       if(!BN_bin2bn(tmp,receivedBytes,numbers[i])){
         fprintf(stderr,"RANK %d: Cannot handle received key from %d",rank,i);
         fflush(stderr);
-        safeFree(tmp,rank);
+        safeFree(tmp);
         *error=-1;
         return NULL;
       }
@@ -147,6 +166,6 @@ BIGNUM** allocateBigNumArray(int size){
       old_size=receivedBytes;
     }
  printf("RANK %d: final free ", rank);
- safeFree(tmp, rank);
+ safeFree(tmp);
  return numbers;
 }
