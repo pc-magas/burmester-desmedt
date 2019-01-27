@@ -1,8 +1,8 @@
 #include <openssl/dh.h>
 #include <openssl/bn.h>
 
-#ifndef APP_DH
-
+#ifndef BD_MPI_DH
+#define BD_MPI_DH
  /**
   * Generate Diffie-Hellman Key Agreement keys.
   * 
