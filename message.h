@@ -1,5 +1,5 @@
+#include <openssl/crypto.h>
 #include <openssl/bn.h>
-#include "mpi.h"
 
 #ifndef BD_MPI_MESSAGE
 #define BD_MPI_MESSAGE
@@ -29,6 +29,11 @@ BIGNUM** allocateBigNumArray(int size);
  * @param [in] size The big number list
  * @return -1 on error 0 on sucess
  */
-int MPIReceiveBigNum(BIGNUM **numbers, int size);
+BIGNUM** MPIReceiveBigNum(int *error, int rank, int size);
 
-#endif BD_MPI_MESSAGE
+/**
+ * Safely frees a value
+ */
+void safeFree(unsigned char *value,int rank);
+
+#endif

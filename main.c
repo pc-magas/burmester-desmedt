@@ -20,8 +20,8 @@ void cleanup(DH *secret) {
 }
 
 int main(int argc, char *argv[]) {
-  int rank, size;
-
+  int rank, size, error;
+  BIGNUM** numbers = NULL;
 
   MPI_Init( &argc, &argv );
   MPI_Comm_rank( MPI_COMM_WORLD, &rank );
@@ -55,9 +55,6 @@ int main(int argc, char *argv[]) {
   printf("RANK %d, Keys generated\n",rank);
   fflush(stdout);
 
-  // Set up Barrier for cpommunications
-  MPI_Barrier(MPI_COMM_WORLD);
-
   printf("RANK %d, Publishing Keys\n", rank);
   fflush(stdout);
 
@@ -68,11 +65,17 @@ int main(int argc, char *argv[]) {
     return -1;
   }
 
-  if(MPIbcastBigNum(secret->pub_key, rank, "Publishing Public Key") == -1){
+  if(-1 == MPIbcastBigNum(secret->pub_key, rank, "Publishing Public Key")){
    cleanup(secret);
    return -1;
   }
   
+  numbers = MPIReceiveBigNum(&error, rank, size);
+  if(-1 == error){
+   cleanup(secret);
+   return -1;
+  }
+
   /*Cleanup */
   cleanup(secret);
   MPI_Finalize();
