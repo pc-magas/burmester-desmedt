@@ -1,6 +1,8 @@
 #include <openssl/bn.h>
 #include "mpi.h"
 
+#ifndef BD_MPI_MESSAGE
+#define BD_MPI_MESSAGE
 /**
  * A common way to handle the 
  */
@@ -29,3 +31,4 @@ BIGNUM** allocateBigNumArray(int size);
  */
 int MPIReceiveBigNum(BIGNUM **numbers, int size);
 
+#endif BD_MPI_MESSAGE
