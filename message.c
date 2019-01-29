@@ -169,3 +169,26 @@ BIGNUM** allocateBigNumArray(int size){
  safeFree(tmp);
  return numbers;
 }
+
+/**
+ * For Debugging purpoces print.
+ * @param [in] array The array to print
+ * @param [in] rank the participant Rank
+ * @param [in] size How long is the array
+ * @param [in] puproce String explaining what bignum array is
+ */
+void printBigNumArray(BIGNUM **array, int rank, int size, char *puproce){
+  printf("\n++++++++++++++++++++++++++++++++++++++++\n");
+  printf("RANK: %d array size %d\n",rank,size);
+  puts(puproce);
+  putchar('\n');
+  for(int i=0;i<size;i++){
+    if(array[i] == NULL){
+      printf("RANK:%d Index: %d VALUE: NULL \n",rank,i);
+      continue;
+    }
+    printf("RANK:%d Index: %d VALUE: %s \n",rank,i,BN_bn2hex(array[i]));
+  }
+  printf("++++++++++++++++++++++++++++++++++++++++\n");
+  fflush(stdin);
+}

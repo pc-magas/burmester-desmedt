@@ -45,4 +45,13 @@ void safeFree(unsigned char *value);
  */
 unsigned char* safeRealloc(unsigned char *value, int oldsize, int newsize);
 
+/**
+ * For Debugging purpoces print.
+ * @param [in] array The array to print
+ * @param [in] rank the participant Rank
+ * @param [in] size How long is the array
+ * @param [in] puproce String explaining what bignum array is
+ */
+void printBigNumArray(BIGNUM **array, int rank, int size, char *puproce);
+
 #endif

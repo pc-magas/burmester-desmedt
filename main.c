@@ -75,6 +75,7 @@ int main(int argc, char *argv[]) {
    cleanup(secret);
    return -1;
   }
+  printBigNumArray(numbers,rank,size,"RECEIVED PUBLIC KEYS");
 
   /*Cleanup */
   cleanup(secret);
