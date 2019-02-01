@@ -102,13 +102,17 @@ int MPIbcastBigNum(BIGNUM *num, int rank, char* purpoce){
  * @param [in] size The number of elements for the array
  * @return An array to Store the BigNum
  */
-BIGNUM** allocateBigNumArray(int size){
+BIGNUM** allocateBigNumArray(int size, int skip){
     if(size<=0) return NULL;
 
     BIGNUM **array = OPENSSL_malloc(size*sizeof(BIGNUM*));
 
     if(!array) return NULL;
     for(int i=0;i<size;i++){
+        if(skip > 0 && skip==0){
+          array[i]=NULL;
+          continue;
+        }
         array[i]=BN_new();
     }
     return array;
@@ -120,7 +124,7 @@ BIGNUM** allocateBigNumArray(int size){
  * @param [in] size The number of participants
  */
  BIGNUM ** MPIReceiveBigNum(int *error, int rank, int size) {
-    BIGNUM **numbers = allocateBigNumArray(size);
+    BIGNUM **numbers = allocateBigNumArray(size, rank);
     int receivedBytes=0,bcastError=0,old_size=0;
     unsigned char *tmp=NULL;
 
@@ -162,10 +166,8 @@ BIGNUM** allocateBigNumArray(int size){
         *error=-1;
         return NULL;
       }
-      printf("RANK %d: Trying to free value: %d",rank,i);
       old_size=receivedBytes;
     }
- printf("RANK %d: final free ", rank);
  safeFree(tmp);
  return numbers;
 }
@@ -178,6 +180,7 @@ BIGNUM** allocateBigNumArray(int size){
  * @param [in] puproce String explaining what bignum array is
  */
 void printBigNumArray(BIGNUM **array, int rank, int size, char *puproce){
+  MPI_Barrier(MPI_COMM_WORLD); // It makes slower but ensores that all the processes are met to this point
   printf("\n++++++++++++++++++++++++++++++++++++++++\n");
   printf("RANK: %d array size %d\n",rank,size);
   puts(puproce);

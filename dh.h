@@ -16,12 +16,26 @@
 /**
  * Calculate the math equation:
  *  *result = (next/previous)^secret%p;
- *
- * @param [out] result Common key from secret.
+ * 
  * @param [in] secret The secret key.
  * @param [in] previous The previous participant public key.
  * @param [in] next The next participant public key.
+ * @param [out] error Indicator if any error has occured
  * @return 0 on sucess -1 on error
  */
-int generateIntermediatekeys(BIGNUM *result, BIGNUM secret, BIGNUM previous, BIGNUM next, BIGNUM p);
+BIGNUM* generateIntermediatekeys(DH *secret, BIGNUM *previous, BIGNUM *next, int *error);
+
+/**
+ * Previous index of an N-sized cyclic group from a given rank
+ * @param rank [in]
+ * @param size [in]
+ */
+int cyclicGroupPrevious(int rank, int size);
+
+/**
+ * Next index of an N-sized cyclic group from a given rank
+ * @param rank [in]
+ * @param size [in]
+ */
+int cyclicGroupNext(int rank, int size);
 #endif

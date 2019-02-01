@@ -20,7 +20,7 @@ int MPIbcastBigNum(BIGNUM *num, int rank, char* purpoce);
  * Allocate a BigNumber array.
  * @param [in] size The number of elements for the array
  */
-BIGNUM** allocateBigNumArray(int size);
+BIGNUM** allocateBigNumArray(int size, int skip);
 
 
 /**
