@@ -87,8 +87,12 @@ int main(int argc, char *argv[]) {
    cleanup(secret, intermediate);
    return -1;
   }
-  printf("RANK %d: Intermediate value %s \n",rank,BN_bn2hex(intermediate));
   
+  printf("RANK %d: Intermediate value %s \n",rank,BN_bn2hex(intermediate));
+  fflush(stdin);
+
+  
+
   /*Cleanup */
   cleanup(secret, intermediate);
   MPI_Finalize();

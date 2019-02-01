@@ -45,6 +45,7 @@ BIGNUM* generateIntermediatekeys(DH *secret, BIGNUM *previous, BIGNUM *next, int
  MPI_Comm_rank( MPI_COMM_WORLD, &rank );
 
  printf("RANK %d Making the division\n", rank);
+ fflush(stdout);
  if(previous == NULL) printf("RANK %d Previous NULL",rank);
  if(next == NULL) printf("RANK %d NEXT NULL",rank);
  if(!BN_div(NULL, dv, next, previous, ctx) ){
@@ -54,13 +55,16 @@ BIGNUM* generateIntermediatekeys(DH *secret, BIGNUM *previous, BIGNUM *next, int
     return NULL;
  }
  printf("RANK %d Divided\n", rank);
- 
+ fflush(stdout);
+
 //  if(!BN_mod_exp(result, &dv, &secret, &p, ctx)){
 //      BN_CTX_free(ctx);
 //      *error=-1;
 //      return NULL;
 //  }
+
  printf("RANK %d Computing intermediate key. Using Public %s\n", rank, BN_bn2hex(dv));
+
  if(0 > (secret_size = DH_compute_key(secretBytes, dv, secret))) {
     BN_CTX_free(ctx);
     OPENSSL_free(secretBytes);
@@ -68,6 +72,7 @@ BIGNUM* generateIntermediatekeys(DH *secret, BIGNUM *previous, BIGNUM *next, int
     return NULL;
  }
  printf("RANK %d Computed intermediate key\n", rank);
+ fflush(stdout);
 
  final=BN_new();
  if(!BN_bin2bn(secretBytes, secret_size, final)){
