@@ -119,6 +119,20 @@ BIGNUM** allocateBigNumArray(int size, int skip){
 }
 
 /**
+ * Freeing a BigNUm array
+ * @param [in/out] array The array to clean up
+ */
+void freeBigNumArray(BIGNUM ***array, int size){
+ if(size<=0) return;
+ if(array == NULL) return;
+ for(int i=0;i<size;i++){
+    if(*array[i]==NULL) continue;
+    BN_free(*array[i]);
+ }
+ OPENSSL_free(*array);
+}
+
+/**
  * Receive generated Big Number from all participants
  * @param [out] numbers The list of all received Big Numbers
  * @param [in] size The number of participants
@@ -195,3 +209,4 @@ void printBigNumArray(BIGNUM **array, int rank, int size, char *puproce){
   printf("++++++++++++++++++++++++++++++++++++++++\n");
   fflush(stdin);
 }
+

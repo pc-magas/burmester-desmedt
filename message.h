@@ -32,6 +32,12 @@ BIGNUM** allocateBigNumArray(int size, int skip);
 BIGNUM** MPIReceiveBigNum(int *error, int rank, int size);
 
 /**
+ * Freeing a BigNUm array
+ * @param [in/out] array The array to clean up
+ */
+void freeBigNumArray(BIGNUM ***array, int size);
+
+/**
  * Safely frees a value'
  * @param [in/out] value The value to free afteer freeing we enforce its value as null
  */

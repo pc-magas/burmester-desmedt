@@ -22,7 +22,7 @@ void cleanup(DH *secret, BIGNUM *intermediate) {
 
 int main(int argc, char *argv[]) {
   int rank, size, error, previous_index, next_index;
-  BIGNUM** numbers = NULL;
+  BIGNUM** numbers = NULL, **intermediate_keys=NULL;
 
   MPI_Init( &argc, &argv );
   MPI_Comm_rank( MPI_COMM_WORLD, &rank );
@@ -92,8 +92,29 @@ int main(int argc, char *argv[]) {
   fflush(stdin);
 
   
+  if(-1 == MPIbcastBigNum(intermediate, rank, "Publishing Intermediate Key")){
+   cleanup(secret, NULL);
+   return -1;
+  }
+  
+  printf("RANK %d: Receiving Other Intermediate Values\n",rank);
+  fflush(stdin);
+  error=0;
+  intermediate_keys=MPIReceiveBigNum(&error,rank,size);
+  printf("RANK %d: Received Other Intermediate Values\n",rank);
+  fflush(stdin);
+  intermediate_keys[rank]=intermediate;
+
+  
 
   /*Cleanup */
+  puts("Cleaning Up");
+  fflush(stdin);
+  // puts("Freeing received public keys");
+  // freeBigNumArray(&numbers, size);
+
+  // puts("Freeing generated intermediate values");
+  // freeBigNumArray(&intermediate_keys, size);
   cleanup(secret, intermediate);
   MPI_Finalize();
   return 0;
