@@ -13,7 +13,7 @@ message: message.c message.h
 	$(CC) -c -o ./builds/message.o -g ./message.c
 
 run: main
-	mpirun -np 3 ./builds/main
+	mpirun -np 3 xterm -e ./builds/main
 
 debug: main
 	mpirun -np 3 xterm -e gdb ./builds/main
