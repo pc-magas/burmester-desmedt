@@ -1,6 +1,7 @@
 #include "dh.h"
 #include "mpi.h"
 #include <openssl/dh.h>
+#include <openssl/bn.h>
 
 /**
  * Generate Diffie-Hellman Key Agreement keys.
@@ -78,6 +79,8 @@ BIGNUM* generateIntermediatekeys(DH *secret, BIGNUM *previous, BIGNUM *next, int
  if(!BN_bin2bn(secretBytes, secret_size, final)){
     BN_free(final);
     OPENSSL_free(secretBytes);
+   //  BN_CTX_free(ctx);
+
     *error=-1;
     return NULL;
  }
@@ -85,6 +88,57 @@ BIGNUM* generateIntermediatekeys(DH *secret, BIGNUM *previous, BIGNUM *next, int
  OPENSSL_free(secretBytes);
  BN_CTX_free(ctx);
  return final;
+}
+
+/**
+ * Calculate the: k[i-1]^n*xi
+ * @param [in] secret The Secret Key
+ * @param [in] previous The previous Key
+ * @param [in] size the group size
+ * @param [out] error Indicator if any error has occured
+ * @return The Intermediate Key Ki thaty will be miltiplied on the next step
+ */
+BIGNUM* generateKeyFromPreviousParticipant(DH *secret, BIGNUM *previous, int size, int * error){
+   BIGNUM *tmp= NULL;
+   BIGNUM *sizeInBigNum = NULL;
+   BN_CTX *ctx = NULL;
+
+   if(secret==NULL){
+    *error=-1;
+    return NULL;
+   }
+   
+   sizeInBigNum=BN_new();
+   if(!BN_set_word(sizeInBigNum, (unsigned long) size)){
+     OPENSSL_free(sizeInBigNum);
+     *error=-1;
+     return NULL;
+   }
+
+   // We immute the secret from DH*.
+   ctx=BN_CTX_new();
+   tmp=BN_new();
+   puts("Doing Muliplication\n"); fflush(stdout);
+   if(!BN_mul(tmp,secret->priv_key,sizeInBigNum,ctx)){
+      BN_free(sizeInBigNum);
+      BN_free(tmp);
+      BN_CTX_free(ctx);
+      *error=-1;
+      return NULL;
+   }
+
+   puts("Raize Into Power\n"); fflush(stdout);
+   if(!BN_exp(tmp,previous,tmp,ctx)){
+      BN_free(sizeInBigNum);
+      BN_free(tmp);
+      BN_CTX_free(ctx);
+      *error=-1;
+      return NULL;
+   }
+
+   BN_free(sizeInBigNum);
+   BN_CTX_free(ctx);
+   return tmp;
 }
 
 /**

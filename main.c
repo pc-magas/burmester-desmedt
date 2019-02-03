@@ -10,19 +10,22 @@
 #include "message.h"
 #include "dh.h"
 
-void cleanup(DH *secret, BIGNUM *intermediate);
+void cleanup(DH *secret, BIGNUM *intermediate, BIGNUM *previousVal);
 
-void cleanup(DH *secret, BIGNUM *intermediate) {
+void cleanup(DH *secret, BIGNUM *intermediate, BIGNUM *previousVal) {
   if(intermediate != NULL)  BN_free(intermediate);
+  if(previousVal != NULL) BN_free(previousVal);
   EVP_cleanup();
   CRYPTO_cleanup_all_ex_data();
   OPENSSL_free(secret);
   ERR_free_strings();
+  MPI_Finalize();
 }
 
 int main(int argc, char *argv[]) {
   int rank, size, error, previous_index, next_index;
   BIGNUM** numbers = NULL, **intermediate_keys=NULL;
+  BIGNUM *previousVal = NULL;
 
   MPI_Init( &argc, &argv );
   MPI_Comm_rank( MPI_COMM_WORLD, &rank );
@@ -50,7 +53,7 @@ int main(int argc, char *argv[]) {
   printf("RANK %d, Generating Diffie Hellman Keys\n", rank);
   fflush(stdout);
   if(-1 == generateKeys(secret)) {
-    cleanup(secret, NULL);
+    cleanup(secret, NULL, NULL);
     fprintf(stderr, "RANK %d, Failed to intialize key\n",rank);
     fflush(stderr);
     return -1;
@@ -63,20 +66,20 @@ int main(int argc, char *argv[]) {
   fflush(stdout);
 
   if(secret == NULL) {
-    cleanup(secret, NULL);
+    cleanup(secret, NULL, NULL);
     fprintf(stderr, "RANK %d, Error on Generating the Diffie Hellman\n",rank);
     fflush(stderr);
     return -1;
   }
 
   if(-1 == MPIbcastBigNum(secret->pub_key, rank, "Publishing Public Key")){
-   cleanup(secret, NULL);
+   cleanup(secret, NULL, NULL);
    return -1;
   }
   
   numbers = MPIReceiveBigNum(&error, rank, size);
   if(-1 == error){
-   cleanup(secret, NULL);
+   cleanup(secret, NULL, NULL);
    return -1;
   }
   // printBigNumArray(numbers,rank,size,"RECEIVED PUBLIC KEYS");
@@ -84,7 +87,7 @@ int main(int argc, char *argv[]) {
   error=0;
   BIGNUM *intermediate = generateIntermediatekeys(secret,numbers[previous_index],numbers[next_index], &error);
   if(-1==error) {
-   cleanup(secret, intermediate);
+   cleanup(secret, intermediate, NULL);
    return -1;
   }
   
@@ -93,7 +96,7 @@ int main(int argc, char *argv[]) {
 
   
   if(-1 == MPIbcastBigNum(intermediate, rank, "Publishing Intermediate Key")){
-   cleanup(secret, NULL);
+   cleanup(secret, intermediate, NULL);
    return -1;
   }
   
@@ -105,7 +108,14 @@ int main(int argc, char *argv[]) {
   fflush(stdin);
   intermediate_keys[rank]=intermediate;
 
-  
+  printf("RANK %d: Calculating previous Secret Value", rank);
+  fflush(stdout);
+  error=0;
+  previousVal=generateKeyFromPreviousParticipant(secret,numbers[previous_index],size, &error);
+  if(error == -1){
+    cleanup(secret, intermediate, previousVal);
+    return -1;
+  }
 
   /*Cleanup */
   puts("Cleaning Up");
@@ -115,7 +125,6 @@ int main(int argc, char *argv[]) {
 
   // puts("Freeing generated intermediate values");
   // freeBigNumArray(&intermediate_keys, size);
-  cleanup(secret, intermediate);
-  MPI_Finalize();
+  cleanup(secret, intermediate, previousVal);
   return 0;
 }
