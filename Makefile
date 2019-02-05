@@ -10,7 +10,7 @@ main: message dh main.c
 	$(CC) -o ${CURDIR}/builds/main main.c ${CURDIR}/builds/dh.o ${CURDIR}/builds/message.o  -g -lcrypto -lssl
 
 dh: buildsDir dh.c dh.h
-	$(CC) -c -o ${CURDIR}/builds/dh.o ${CURDIR}/build_openssl/lib/libcrypto.so ${CURDIR}/build_openssl/lib/libssl.so dh.c -g
+	$(CC) -c -o ${CURDIR}/builds/dh.o dh.c -g -lcrypto -lssl
 
 message: buildsDir message.c message.h
 	$(CC) -c -o ${CURDIR}/builds/message.o -g ./message.c
