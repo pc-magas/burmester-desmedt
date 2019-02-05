@@ -1,3 +1,14 @@
 .vscode
 builds
 *.output
+apps
+crypto
+doc
+engines
+fuzz
+ssl
+test
+tools
+util
+include
+configdata.pm
