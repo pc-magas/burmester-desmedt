@@ -100,7 +100,9 @@ BIGNUM* generateIntermediatekeys(DH *secret, BIGNUM *previous, BIGNUM *next, int
  */
 BIGNUM* generateKeyFromPreviousParticipant(DH *secret, BIGNUM *previous, int size, int * error){
    BIGNUM *tmp= NULL;
+   BIGNUM *tmp2 = NULL;
    BIGNUM *sizeInBigNum = NULL;
+   int secret_size=0;
    BN_CTX *ctx = NULL;
 
    if(secret==NULL){
@@ -128,18 +130,102 @@ BIGNUM* generateKeyFromPreviousParticipant(DH *secret, BIGNUM *previous, int siz
    }
 
    puts("Raize Into Power\n"); fflush(stdout);
-   if(!BN_exp(tmp,previous,tmp,ctx)){
+   tmp2=BN_new();
+   if(!BN_mod_exp(tmp2, previous, tmp, secret->p ,ctx)){
       BN_free(sizeInBigNum);
       BN_free(tmp);
       BN_CTX_free(ctx);
       *error=-1;
       return NULL;
    }
-
+   
    BN_free(sizeInBigNum);
    BN_CTX_free(ctx);
-   return tmp;
+   return tmp2;
 }
+
+BIGNUM* calculateFinalKey(BIGNUM *p, BIGNUM *previousVal, BIGNUM **intermediateKeys, int size, int rank){
+   BIGNUM *final = BN_new(); // Storing final result
+   BIGNUM *tmp = BN_new(), *sizeTmpStorage = BN_new();
+   BN_CTX *ctx = BN_CTX_new();
+
+   int end = 0, size_start=size-1, final_mul=0;
+
+   end=cyclicGroupPrevious(rank,size);
+   end=cyclicGroupPrevious(end,size);
+
+   printf("RANK %d: Iteration will end at %d",rank,end);fflush(stdout);
+   
+
+   if(final == NULL || tmp == NULL || sizeTmpStorage == NULL){
+      return NULL;
+   }
+
+   if(!BN_set_word(final,1ul)){
+      BN_free(tmp);
+      BN_free(sizeTmpStorage);
+      BN_free(final);
+      return NULL;
+   }
+
+   for(int i=rank; i!=end; i=i+1%size){
+     printf("RANK %d: Size %d",rank,size_start);fflush(stdout);
+     if(size_start != 0){
+      printf("RANK %d i %d: Setting Size as BigNum\n",rank,i);fflush(stdin);
+      if(!BN_set_word(sizeTmpStorage,size_start)){
+         BN_free(tmp);
+         BN_free(sizeTmpStorage);
+         BN_free(final);
+         BN_CTX_free(ctx);
+         return NULL;
+      }
+
+      printf("RANK %d i %d: Calculating Ki^n\n",rank,i); fflush(stdin);
+      if(intermediateKeys[i] == NULL)  printf("RANK %d i %d: NULL Value \n",rank,i); fflush(stdin);
+      if(intermediateKeys[i] != NULL && !BN_mod_exp(tmp,intermediateKeys[i],sizeTmpStorage,p,ctx)){
+         BN_free(tmp);
+         BN_free(sizeTmpStorage);
+         BN_free(final);
+         BN_CTX_free(ctx);
+         return NULL;
+      }
+     } else {
+        // An another approach would require the time-consuming BN_copy
+        // Thus we are making the final multip;lication outside the loop
+        final_mul=i;
+        break;
+     }
+
+     //Multiply
+     printf("RANK %d i: %d: Multiplying into the final result\n",rank,i); fflush(stdin);
+     if(!BN_mul(final,tmp,final,ctx)) {
+         BN_free(tmp);
+         BN_free(sizeTmpStorage);
+         BN_free(final);
+         BN_CTX_free(ctx);
+         return NULL;
+     }
+     size_start--;
+   }
+
+   //TMP and sizeStorageAsBigNum no longer needed
+   BN_free(tmp);
+   BN_free(sizeTmpStorage);
+
+   printf("RANK %d: Multiplying into the final result\n",rank); fflush(stdin);
+   if(!BN_mul(final,intermediateKeys[final_mul],final,ctx) ||
+      !BN_mul(final,previousVal,final,ctx) ||
+      !BN_mod(final,final,p,ctx)
+   ) {
+      BN_free(final);
+      BN_CTX_free(ctx);
+      return NULL;
+   }
+
+   BN_CTX_free(ctx);
+   return final;
+}
+
 
 /**
  * Previous index of an N-sized cyclic group from a given rank

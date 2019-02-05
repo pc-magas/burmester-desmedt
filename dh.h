@@ -36,6 +36,13 @@ BIGNUM* generateIntermediatekeys(DH *secret, BIGNUM *previous, BIGNUM *next, int
 BIGNUM* generateKeyFromPreviousParticipant(DH *secret, BIGNUM *previous, int size, int *error);
 
 /**
+ * Calculate the final Key
+ * @param [in] p Prime number for performing modulo
+ * @param [in] previousVal The previous value  
+ */
+BIGNUM* calculateFinalKey(BIGNUM *p, BIGNUM *previousVal, BIGNUM **intermediateKeys, int size, int rank);
+
+/**
  * Previous index of an N-sized cyclic group from a given rank
  * @param rank [in]
  * @param size [in]

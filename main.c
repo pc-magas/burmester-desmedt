@@ -19,13 +19,12 @@ void cleanup(DH *secret, BIGNUM *intermediate, BIGNUM *previousVal) {
   CRYPTO_cleanup_all_ex_data();
   OPENSSL_free(secret);
   ERR_free_strings();
-  MPI_Finalize();
 }
 
 int main(int argc, char *argv[]) {
   int rank, size, error, previous_index, next_index;
   BIGNUM** numbers = NULL, **intermediate_keys=NULL;
-  BIGNUM *previousVal = NULL;
+  BIGNUM *previousVal = NULL, *finalKey=NULL;
 
   MPI_Init( &argc, &argv );
   MPI_Comm_rank( MPI_COMM_WORLD, &rank );
@@ -108,13 +107,23 @@ int main(int argc, char *argv[]) {
   fflush(stdin);
   intermediate_keys[rank]=intermediate;
 
-  printf("RANK %d: Calculating previous Secret Value", rank);
+  printf("RANK %d: Calculating previous Secret Value\n", rank);
   fflush(stdout);
   error=0;
   previousVal=generateKeyFromPreviousParticipant(secret,numbers[previous_index],size, &error);
   if(error == -1){
     cleanup(secret, intermediate, previousVal);
     return -1;
+  }
+  printf("RANK %d: Calculated previous Secret Value\n", rank);
+  printf("RANK %d: Calculating final Key\n", rank);
+  fflush(stdout);
+  finalKey=calculateFinalKey(secret->p, previousVal, intermediate_keys, size, rank);
+  
+  if(finalKey != NULL){
+   printf("RANK %d: Final Key Calculated: %s\n",rank,BN_bn2hex(finalKey));
+  } else {
+    printf("RANK %d: Final Key Calculation Failure: \n",rank);
   }
 
   /*Cleanup */
@@ -125,6 +134,8 @@ int main(int argc, char *argv[]) {
 
   // puts("Freeing generated intermediate values");
   // freeBigNumArray(&intermediate_keys, size);
+  BN_free(finalKey);
   cleanup(secret, intermediate, previousVal);
+  MPI_Finalize();
   return 0;
 }
