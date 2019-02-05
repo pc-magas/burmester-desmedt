@@ -11,7 +11,23 @@
 int generateKeys(DH *encryptionInfo) {
  int codes;
 
- if(1 != DH_generate_parameters_ex(encryptionInfo, 2048, DH_GENERATOR_2, NULL)) return -1;
+ BIGNUM *two = BN_new();
+ BN_set_word(two,2);
+ if(two == NULL) {
+   return -1;
+ };
+
+ BIGNUM *prime=get_rfc3526_prime_2048(NULL);
+ if(prime == NULL ) {
+   BN_free(two);
+   return -1;
+ };
+ encryptionInfo->p=BN_dup(prime);
+ encryptionInfo->g=BN_dup(two);
+ BN_free(two);
+ BN_free(prime);
+
+//  if(1 != DH_generate_parameters_ex(encryptionInfo, 2048, DH_GENERATOR_2, NULL)) return -1;
  if(1 != DH_check(encryptionInfo, &codes)) return -1;
  if(codes != 0) return -1;
  if(1 != DH_generate_key(encryptionInfo)) return -1;
