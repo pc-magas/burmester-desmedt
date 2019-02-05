@@ -168,8 +168,8 @@ BIGNUM* calculateFinalKey(BIGNUM *p, BIGNUM *previousVal, BIGNUM **intermediateK
       return NULL;
    }
 
-   for(int i=rank; i!=end; i=i+1%size){
-     printf("RANK %d: Size %d",rank,size_start);fflush(stdout);
+   for(int i=rank; i!=end; i=(i+1)%size){
+     printf("RANK %d: Exp_size: %d Array Size: %d",rank,size_start,size);fflush(stdout);
      if(size_start != 0){
       printf("RANK %d i %d: Setting Size as BigNum\n",rank,i);fflush(stdin);
       if(!BN_set_word(sizeTmpStorage,size_start)){
