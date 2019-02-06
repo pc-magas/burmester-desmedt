@@ -10,21 +10,55 @@
  */
 int generateKeys(DH *encryptionInfo) {
  int codes;
+ BIGNUM *two = BN_new(), *p=NULL;
 
- BIGNUM *two = BN_new();
- BN_set_word(two,2);
+ puts("Select fixed p and g parameters\n");
+
  if(two == NULL) {
    return -1;
  };
+ 
+ if(p=NULL){
+    BN_free(two);
+    return -1;
+ }
 
- puts("Select fixed p and g parameters\n");
- DH_set0_pqg (encryptionInfo, get_rfc3526_prime_2048(BN_new()), NULL, two);
+ BN_set_word(two,2);
+ if( 1 != DH_set0_pqg (encryptionInfo, get_rfc3526_prime_2048(p), NULL, two)) return -1;
 
- if(1 != DH_generate_parameters_ex(encryptionInfo, 2048, DH_GENERATOR_2, NULL)) return -1;
- if(1 != DH_check(encryptionInfo, &codes)) return -1;
- if(codes != 0) return -1;
+//  if(1 != DH_generate_parameters_ex(encryptionInfo, 2048, DH_GENERATOR_2, NULL)) return -1;
+ puts("Checking for codes\n");
+//  if(1 != DH_check(encryptionInfo, &codes)) return -1;
+//  printf("Codes values %d\n", codes);
+//  switch(codes){
+//     case DH_CHECK_P_NOT_PRIME:
+//       puts("DH_CHECK_P_NOT_PRIME\n");
+//       break;
+//     case DH_CHECK_P_NOT_SAFE_PRIME:
+//       puts("DH_CHECK_P_NOT_SAFE_PRIME\n");
+//       break;
+//     case DH_UNABLE_TO_CHECK_GENERATOR:
+//       puts("DH_UNABLE_TO_CHECK_GENERATOR\n");
+//       break;
+//     case DH_NOT_SUITABLE_GENERATOR:
+//       puts("DH_NOT_SUITABLE_GENERATOR\n");
+//       break;
+//     case DH_CHECK_Q_NOT_PRIME:
+//       puts("DH_CHECK_Q_NOT_PRIME\n");
+//       break;
+//     case DH_CHECK_INVALID_Q_VALUE:
+//       puts("DH_CHECK_INVALID_Q_VALUE\n");
+//       break;
+//     case DH_CHECK_INVALID_J_VALUE:
+//       puts("DH_CHECK_INVALID_J_VALUE\n");
+//       break;
+//  }
+//  if(codes != 0) return -1;
+ puts("Generating Keys \n");
  if(1 != DH_generate_key(encryptionInfo)) return -1;
   
+ BN_free(two);
+ BN_free(p);
  return 0;
 }
 
