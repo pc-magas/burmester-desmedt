@@ -73,7 +73,8 @@ int main(int argc, char *argv[]) {
     return -1;
   }
 
-  pubKey=DH_get0_pub_key(secret);
+  pubKey=BN_new();
+  DH_get0_key(secret, &pubKey, NULL);
   if(-1 == MPIbcastBigNum(pubKey, rank, "Publishing Public Key")){
    cleanup(secret, NULL, NULL);
    return -1;
@@ -122,7 +123,9 @@ int main(int argc, char *argv[]) {
   printf("RANK %d: Calculating final Key\n", rank);
   fflush(stdout);
 
-  p=DH_get0_p(secret);
+  // p=DH_get0_p(secret);
+  p=BN_new();
+  DH_get0_pqg(secret,&p,NULL,NULL);
   finalKey=calculateFinalKey(p, previousVal, intermediate_keys, size, rank);
   
   if(finalKey != NULL){

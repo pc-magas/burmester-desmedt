@@ -17,9 +17,10 @@ int generateKeys(DH *encryptionInfo) {
    return -1;
  };
 
- DH_set0_pqg (encryptionInfo, get_rfc3526_prime_2048(BN_new()), two, NULL);
+ puts("Select fixed p and g parameters\n");
+ DH_set0_pqg (encryptionInfo, get_rfc3526_prime_2048(BN_new()), NULL, two);
 
-//  if(1 != DH_generate_parameters_ex(encryptionInfo, 2048, DH_GENERATOR_2, NULL)) return -1;
+ if(1 != DH_generate_parameters_ex(encryptionInfo, 2048, DH_GENERATOR_2, NULL)) return -1;
  if(1 != DH_check(encryptionInfo, &codes)) return -1;
  if(codes != 0) return -1;
  if(1 != DH_generate_key(encryptionInfo)) return -1;
@@ -110,8 +111,8 @@ BIGNUM* generateKeyFromPreviousParticipant(DH *secret, BIGNUM *previous, int siz
    BIGNUM *tmp= NULL;
    BIGNUM *tmp2 = NULL;
    BIGNUM *sizeInBigNum = NULL;
-   BIGNUM *priv_key = NULL;
-   BIGNUM *p = NULL;
+   BIGNUM *priv_key = BN_new();
+   BIGNUM *p = BN_new();
    int secret_size=0;
    BN_CTX *ctx = NULL;
 
@@ -133,7 +134,7 @@ BIGNUM* generateKeyFromPreviousParticipant(DH *secret, BIGNUM *previous, int siz
    puts("Doing Muliplication\n"); fflush(stdout);
 
 
-   priv_key=DH_get0_priv_key(secret);
+   DH_get0_key(secret, NULL, &priv_key);
    if(!BN_mul(tmp,priv_key,sizeInBigNum,ctx)){
       BN_free(sizeInBigNum);
       BN_free(tmp);
@@ -144,7 +145,7 @@ BIGNUM* generateKeyFromPreviousParticipant(DH *secret, BIGNUM *previous, int siz
 
    puts("Raize Into Power\n"); fflush(stdout);
    tmp2=BN_new();
-   p=DH_get0_p(secret);
+   DH_get0_pqg(secret,&p,NULL,NULL);
    if(!BN_mod_exp(tmp2, previous, tmp, p ,ctx)){
       BN_free(sizeInBigNum);
       BN_free(tmp);
