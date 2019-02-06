@@ -15,10 +15,10 @@ void cleanup(DH *secret, BIGNUM *intermediate, BIGNUM *previousVal);
 void cleanup(DH *secret, BIGNUM *intermediate, BIGNUM *previousVal) {
   if(intermediate != NULL)  BN_free(intermediate);
   if(previousVal != NULL) BN_free(previousVal);
-  EVP_cleanup();
-  CRYPTO_cleanup_all_ex_data();
   OPENSSL_free(secret);
-  ERR_free_strings();
+  // EVP_cleanup();
+  // CRYPTO_cleanup_all_ex_data();
+  // ERR_free_strings();
 }
 
 int main(int argc, char *argv[]) {
@@ -32,12 +32,12 @@ int main(int argc, char *argv[]) {
   MPI_Comm_rank( MPI_COMM_WORLD, &rank );
   MPI_Comm_size( MPI_COMM_WORLD, &size );
   
-  /* Load the human readable error strings for libcrypto */
-  ERR_load_crypto_strings();
-  /* Load all digest and cipher algorithms */
-  OpenSSL_add_all_algorithms();
-  /* Load config file, and other important initialisation */
-  OPENSSL_config(NULL);
+  // /* Load the human readable error strings for libcrypto */
+  // ERR_load_crypto_strings();
+  // /* Load all digest and cipher algorithms */
+  // OpenSSL_add_all_algorithms();
+  // /* Load config file, and other important initialisation */
+  // OPENSSL_config(NULL);
   
   previous_index=cyclicGroupPrevious(rank,size);
   next_index=cyclicGroupNext(rank,size);
