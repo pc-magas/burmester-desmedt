@@ -25,6 +25,8 @@ int main(int argc, char *argv[]) {
   int rank, size, error, previous_index, next_index;
   BIGNUM** numbers = NULL, **intermediate_keys=NULL;
   BIGNUM *previousVal = NULL, *finalKey=NULL;
+  BIGNUM *pubKey = NULL;
+  BIGNUM *p = NULL;
 
   MPI_Init( &argc, &argv );
   MPI_Comm_rank( MPI_COMM_WORLD, &rank );
@@ -71,7 +73,8 @@ int main(int argc, char *argv[]) {
     return -1;
   }
 
-  if(-1 == MPIbcastBigNum(secret->pub_key, rank, "Publishing Public Key")){
+  pubKey=DH_get0_pub_key(secret);
+  if(-1 == MPIbcastBigNum(pubKey, rank, "Publishing Public Key")){
    cleanup(secret, NULL, NULL);
    return -1;
   }
@@ -118,7 +121,9 @@ int main(int argc, char *argv[]) {
   printf("RANK %d: Calculated previous Secret Value\n", rank);
   printf("RANK %d: Calculating final Key\n", rank);
   fflush(stdout);
-  finalKey=calculateFinalKey(secret->p, previousVal, intermediate_keys, size, rank);
+
+  p=DH_get0_p(secret);
+  finalKey=calculateFinalKey(p, previousVal, intermediate_keys, size, rank);
   
   if(finalKey != NULL){
    printf("RANK %d: Final Key Calculated: %s\n",rank,BN_bn2hex(finalKey));
