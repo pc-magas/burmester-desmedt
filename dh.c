@@ -27,9 +27,9 @@ int generateKeys(DH *encryptionInfo) {
  * @return 0 on sucess -1 on error
  */
 BIGNUM* generateIntermediatekeys(DH *secret, BIGNUM *previous, BIGNUM *next, int *error){
- BIGNUM *dv = BN_new();
+ BIGNUM *dv = NULL;
  unsigned char *secretBytes; //Calculated Secret Key
- BIGNUM *final, *previousInverse=BN_new(), *p=BN_new();
+ BIGNUM *final, *previousInverse, *p=BN_new();
  int secret_size = 0;
  BN_CTX *ctx = BN_CTX_new();
 
@@ -48,21 +48,25 @@ BIGNUM* generateIntermediatekeys(DH *secret, BIGNUM *previous, BIGNUM *next, int
  if(next == NULL) printf("RANK %d NEXT NULL",rank);
 
  DH_get0_pqg(secret,&p,NULL,NULL);
-
+ previousInverse=BN_new();
  if(!BN_mod_inverse(previousInverse,previous,p,ctx)){
     OPENSSL_free(secretBytes);
+    BN_free(p);
+    BN_free(previousInverse);
     BN_CTX_free(ctx);
     *error=-1;
     return NULL;
  }
- 
+dv=BN_new();
 if(!BN_mod_mul(dv,previousInverse,next,p,ctx)){
     OPENSSL_free(secretBytes);
+    BN_free(p);
     BN_CTX_free(ctx);
     *error=-1;
     return NULL;
  }
-
+ BN_free(previousInverse);
+ BN_free(p);
  printf("RANK %d Divided\n", rank);
  fflush(stdout);
 
@@ -196,7 +200,7 @@ BIGNUM* calculateFinalKey(BIGNUM *p, BIGNUM *previousVal, BIGNUM **intermediateK
 
       printf("RANK %d i %d: Calculating Ki^n\n",rank,i); fflush(stdin);
       if(intermediateKeys[i] == NULL)  printf("RANK %d i %d: NULL Value \n",rank,i); fflush(stdin);
-      if(intermediateKeys[i] != NULL && !BN_exp(tmp,intermediateKeys[i],sizeTmpStorage,ctx)){
+      if(intermediateKeys[i] != NULL && !BN_mod_exp(tmp,intermediateKeys[i],sizeTmpStorage,p,ctx)){
          BN_free(tmp);
          BN_free(sizeTmpStorage);
          BN_free(final);
@@ -212,7 +216,7 @@ BIGNUM* calculateFinalKey(BIGNUM *p, BIGNUM *previousVal, BIGNUM **intermediateK
 
      //Multiply
      printf("RANK %d i: %d: Multiplying into the final result\n",rank,i); fflush(stdin);
-     if(!BN_mul(final,tmp,final,ctx)) {
+     if(!BN_mod_mul(final,tmp,final,p,ctx)) {
          BN_free(tmp);
          BN_free(sizeTmpStorage);
          BN_free(final);
@@ -228,9 +232,8 @@ BIGNUM* calculateFinalKey(BIGNUM *p, BIGNUM *previousVal, BIGNUM **intermediateK
 
    printf("RANK %d: Multiplying into the final result\n",rank); fflush(stdin);
    if(
-      !BN_mul(final,intermediateKeys[final_mul],final,ctx) ||
-      !BN_mul(final,previousVal,final,ctx) ||
-      !BN_mod(final,final,p,ctx)
+      !BN_mod_mul(final,intermediateKeys[final_mul],final,p,ctx) ||
+      !BN_mod_mul(final,previousVal,final,p,ctx)
    ) {
       BN_free(final);
       BN_CTX_free(ctx);
