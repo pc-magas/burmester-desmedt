@@ -11,7 +11,11 @@
 int generateKeys(DH *encryptionInfo) {
  int codes;
  
-//  if(1 != DH_generate_parameters_ex(encryptionInfo, 2048, DH_GENERATOR_2, NULL)) return -1;
+ BIGNUM *two = BN_new(); 
+ if( !encryptionInfo || !two ) return -1;
+ BN_set_word(two,2); 
+ DH_set0_pqg (encryptionInfo, BN_dup(BN_get_rfc3526_prime_2048(NULL)), NULL, two);
+
  if(1 != DH_generate_key(encryptionInfo)) return -1;
  return 0;
 }
@@ -186,7 +190,7 @@ BIGNUM* calculateFinalKey(BIGNUM *p, BIGNUM *previousVal, BIGNUM **intermediateK
    end=cyclicGroupPrevious(rank,size);
    end=cyclicGroupPrevious(end,size);
 
-   printf("RANK %d: Iteration will end at %d",rank,end);fflush(stdout);
+   printf("RANK %d: Iteration will end at %d\n",rank,end);fflush(stdout);
    
 
    if(final == NULL || tmp == NULL || sizeTmpStorage == NULL){
@@ -201,8 +205,8 @@ BIGNUM* calculateFinalKey(BIGNUM *p, BIGNUM *previousVal, BIGNUM **intermediateK
    }
 
    for(int i=rank; i!=end; i=(i+1)%size){
-     printf("RANK %d: Exp_size: %d Array Size: %d",rank,size_start,size);fflush(stdout);
-     if(size_start != 1){
+     printf("RANK %d: Exp_size: %d Array Size: %d\n",rank,size_start,size);fflush(stdout);
+     if(size_start != 0){
       printf("RANK %d i %d: Setting Size as BigNum\n",rank,i);fflush(stdin);
       if(!BN_set_word(sizeTmpStorage,size_start)){
          BN_free(tmp);

@@ -44,7 +44,7 @@ int main(int argc, char *argv[]) {
 
   DH *secret = NULL;
 
-  if(NULL == (secret = DH_get_2048_224())){
+  if(NULL == (secret = DH_new())){
       fprintf(stderr, "RANK %d, Could Not Initialize the Diffie Hellman\n",rank);
       fflush(stderr); 
       return -1;
