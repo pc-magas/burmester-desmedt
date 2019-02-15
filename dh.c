@@ -11,7 +11,7 @@
 int generateKeys(DH *encryptionInfo) {
  int codes;
  
- if(1 != DH_generate_parameters_ex(encryptionInfo, 2048, DH_GENERATOR_2, NULL)) return -1;
+//  if(1 != DH_generate_parameters_ex(encryptionInfo, 2048, DH_GENERATOR_2, NULL)) return -1;
  if(1 != DH_generate_key(encryptionInfo)) return -1;
  return 0;
 }
@@ -33,6 +33,18 @@ BIGNUM* generateIntermediatekeys(DH *secret, BIGNUM *previous, BIGNUM *next, int
  int secret_size = 0;
  BN_CTX *ctx = BN_CTX_new();
 
+ if(p==NULL){
+   *error=-1;
+   BN_CTX_free(ctx);
+   return NULL;
+ }
+
+ if(secret==NULL) {
+   BN_CTX_free(ctx);
+   *error=-1;
+   return NULL; 
+ }
+
  if(NULL == (secretBytes = OPENSSL_malloc(sizeof(unsigned char) * (DH_size(secret))))){
    BN_CTX_free(ctx);
    *error=-1;
@@ -48,6 +60,7 @@ BIGNUM* generateIntermediatekeys(DH *secret, BIGNUM *previous, BIGNUM *next, int
  if(next == NULL) printf("RANK %d NEXT NULL",rank);
 
  DH_get0_pqg(secret,&p,NULL,NULL);
+
  previousInverse=BN_new();
  if(!BN_mod_inverse(previousInverse,previous,p,ctx)){
     OPENSSL_free(secretBytes);
@@ -57,6 +70,7 @@ BIGNUM* generateIntermediatekeys(DH *secret, BIGNUM *previous, BIGNUM *next, int
     *error=-1;
     return NULL;
  }
+
 dv=BN_new();
 if(!BN_mod_mul(dv,previousInverse,next,p,ctx)){
     OPENSSL_free(secretBytes);
@@ -65,20 +79,23 @@ if(!BN_mod_mul(dv,previousInverse,next,p,ctx)){
     *error=-1;
     return NULL;
  }
+ 
  BN_free(previousInverse);
- BN_free(p);
  printf("RANK %d Divided\n", rank);
  fflush(stdout);
 
-//  if(!BN_mod_exp(result, &dv, &secret, &p, ctx)){
-//      BN_CTX_free(ctx);
-//      *error=-1;
-//      return NULL;
-//  }
+ final=BN_new();
+ if(final==NULL){
+   BN_free(final);
+   OPENSSL_free(secretBytes);
+   *error=-1;
+   return NULL;
+ }
 
- printf("RANK %d Computing intermediate key. Using Public %s\n", rank, BN_bn2hex(dv));
+ printf("RANK %d Computing intermediate key.\n Using Public %s\n", rank, BN_bn2hex(dv));
 
  if(0 > (secret_size = DH_compute_key(secretBytes, dv, secret))) { // (prev/next)^secret mod p
+   fprintf(stderr, "RANK %d Error on computation of the intermediate key\n", rank);
     BN_CTX_free(ctx);
     OPENSSL_free(secretBytes);
     *error=-1;
@@ -86,19 +103,18 @@ if(!BN_mod_mul(dv,previousInverse,next,p,ctx)){
  }
  printf("RANK %d Computed intermediate key\n", rank);
  fflush(stdout);
+ 
+ BN_CTX_free(ctx);
 
  final=BN_new();
  if(!BN_bin2bn(secretBytes, secret_size, final)){
     BN_free(final);
     OPENSSL_free(secretBytes);
-   //  BN_CTX_free(ctx);
-
     *error=-1;
     return NULL;
  }
 
  OPENSSL_free(secretBytes);
- BN_CTX_free(ctx);
  return final;
 }
 
