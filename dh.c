@@ -64,7 +64,6 @@ BIGNUM* generateIntermediatekeys(DH *secret, BIGNUM *previous, BIGNUM *next, int
  previousInverse=BN_new();
  if(!BN_mod_inverse(previousInverse,previous,p,ctx)){
     OPENSSL_free(secretBytes);
-    BN_free(p);
     BN_free(previousInverse);
     BN_CTX_free(ctx);
     *error=-1;
@@ -74,7 +73,6 @@ BIGNUM* generateIntermediatekeys(DH *secret, BIGNUM *previous, BIGNUM *next, int
 dv=BN_new();
 if(!BN_mod_mul(dv,previousInverse,next,p,ctx)){
     OPENSSL_free(secretBytes);
-    BN_free(p);
     BN_CTX_free(ctx);
     *error=-1;
     return NULL;
